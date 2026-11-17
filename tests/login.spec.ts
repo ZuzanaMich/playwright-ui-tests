@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
-
-test('úspešné prihlásenie do e-shopu', async ({ page }) => {
+test.beforeEach(async ({ page }) => {
     await page.goto('https://www.saucedemo.com/');
+});
+test('úspešné prihlásenie do e-shopu', async ({ page }) => {
+
     await page.getByPlaceholder('Username').fill('standard_user');
     await page.getByPlaceholder('Password').fill('secret_sauce');
     await page.getByRole('button', { name: 'Login' }).click();
@@ -10,7 +12,7 @@ test('úspešné prihlásenie do e-shopu', async ({ page }) => {
 });
 
 test('neúspešné prihlásenie so zlým heslom zobrazí chybu', async ({ page }) => {
-    await page.goto('https://www.saucedemo.com/');
+
     await page.getByPlaceholder('Username').fill('standard_user');
     await page.getByPlaceholder('Password').fill('zle_heslo');
     await page.getByRole('button', { name: 'Login' }).click();
@@ -19,7 +21,7 @@ test('neúspešné prihlásenie so zlým heslom zobrazí chybu', async ({ page }
 });
 
 test('pridanie produktu do košíka po prihlásení', async ({ page }) => {
-    await page.goto('https://www.saucedemo.com/');
+
     await page.getByPlaceholder('Username').fill('standard_user');
     await page.getByPlaceholder('Password').fill('secret_sauce');
     await page.getByRole('button', { name: 'Login' }).click();
@@ -32,4 +34,17 @@ test('pridanie produktu do košíka po prihlásení', async ({ page }) => {
 
     await page.getByRole('button', { name: 'Checkout' }).click();
     await expect(page).toHaveURL(/checkout-step-one.html/);
+    await page.getByPlaceholder('First Name').fill('Zuzana');
+    await page.getByPlaceholder('Last Name').fill('Michalcikova');
+    await page.getByPlaceholder('Zip/Postal Code').fill('81101');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page).toHaveURL(/checkout-step-two.html/);
+});
+test('zoradenie produktov od najlacnejsieho', async ({ page }) => {
+
+    await page.getByPlaceholder('Username').fill('standard_user');
+    await page.getByPlaceholder('Password').fill('secret_sauce');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('combobox').selectOption('Price (low to high)');
+    await expect(page.locator('.inventory_item_name').first()).toHaveText('Sauce Labs Onesie');
 });
