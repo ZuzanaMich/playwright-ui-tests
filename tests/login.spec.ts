@@ -17,7 +17,6 @@ test.describe('Prihlásenie', () => {
         await page.getByPlaceholder('Username').fill('standard_user');
         await page.getByPlaceholder('Password').fill('zle_heslo');
         await page.getByRole('button', { name: 'Login' }).click();
-
         await expect(page.getByText('Username and password do not match')).toBeVisible();
     });
 });
@@ -44,9 +43,21 @@ test.describe('Produkty a nákup', () => {
         await expect(page).toHaveURL(/checkout-complete.html/);
         await expect(page.getByText('Thank you for your order')).toBeVisible();
     });
+
     test('zoradenie produktov od najlacnejsieho', async ({ page }) => {
 
         await page.getByRole('combobox').selectOption('Price (low to high)');
         await expect(page.locator('.inventory_item_name').first()).toHaveText('Sauce Labs Onesie');
+    });
+
+    test('odstránenie produktu z košíka', async ({ page }) => {
+
+        await page.getByRole('button', { name: 'Add to cart' }).first().click();
+        await expect(page.getByRole('button', { name: 'Remove' })).toBeVisible();
+        await page.locator('.shopping_cart_link').click();
+        await expect(page.getByText('Sauce Labs Backpack')).toBeVisible();
+        await page.getByRole('button', { name: 'Remove' }).click();
+        await expect(page.getByText('Sauce Labs Backpack')).not.toBeVisible();
+
     });
 });
