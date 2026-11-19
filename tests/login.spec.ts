@@ -2,49 +2,51 @@ import { test, expect } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
     await page.goto('https://www.saucedemo.com/');
 });
-test('úspešné prihlásenie do e-shopu', async ({ page }) => {
+test.describe('Prihlásenie', () => {
+    test('úspešné prihlásenie do e-shopu', async ({ page }) => {
 
-    await page.getByPlaceholder('Username').fill('standard_user');
-    await page.getByPlaceholder('Password').fill('secret_sauce');
-    await page.getByRole('button', { name: 'Login' }).click();
+        await page.getByPlaceholder('Username').fill('standard_user');
+        await page.getByPlaceholder('Password').fill('secret_sauce');
+        await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL(/inventory.html/);
+        await expect(page).toHaveURL(/inventory.html/);
+    });
+
+    test('neúspešné prihlásenie so zlým heslom zobrazí chybu', async ({ page }) => {
+
+        await page.getByPlaceholder('Username').fill('standard_user');
+        await page.getByPlaceholder('Password').fill('zle_heslo');
+        await page.getByRole('button', { name: 'Login' }).click();
+
+        await expect(page.getByText('Username and password do not match')).toBeVisible();
+    });
 });
+test.describe('Produkty a nákup', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.getByPlaceholder('Username').fill('standard_user');
+        await page.getByPlaceholder('Password').fill('secret_sauce');
+        await page.getByRole('button', { name: 'Login' }).click();
+    });
+    test('kompletný nákup produktu (E2E)', async ({ page }) => {
 
-test('neúspešné prihlásenie so zlým heslom zobrazí chybu', async ({ page }) => {
+        await page.getByRole('button', { name: 'Add to cart' }).first().click();
+        await expect(page.getByRole('button', { name: 'Remove' })).toBeVisible();
+        await page.locator('.shopping_cart_link').click();
+        await expect(page.getByText('Sauce Labs Backpack')).toBeVisible();
+        await page.getByRole('button', { name: 'Checkout' }).click();
+        await expect(page).toHaveURL(/checkout-step-one.html/);
+        await page.getByPlaceholder('First Name').fill('Zuzana');
+        await page.getByPlaceholder('Last Name').fill('Michalcikova');
+        await page.getByPlaceholder('Zip/Postal Code').fill('81101');
+        await page.getByRole('button', { name: 'Continue' }).click();
+        await expect(page).toHaveURL(/checkout-step-two.html/);
+        await page.getByRole('button', { name: 'Finish' }).click();
+        await expect(page).toHaveURL(/checkout-complete.html/);
+        await expect(page.getByText('Thank you for your order')).toBeVisible();
+    });
+    test('zoradenie produktov od najlacnejsieho', async ({ page }) => {
 
-    await page.getByPlaceholder('Username').fill('standard_user');
-    await page.getByPlaceholder('Password').fill('zle_heslo');
-    await page.getByRole('button', { name: 'Login' }).click();
-
-    await expect(page.getByText('Username and password do not match')).toBeVisible();
-});
-
-test('pridanie produktu do košíka po prihlásení', async ({ page }) => {
-
-    await page.getByPlaceholder('Username').fill('standard_user');
-    await page.getByPlaceholder('Password').fill('secret_sauce');
-    await page.getByRole('button', { name: 'Login' }).click();
-
-    await page.getByRole('button', { name: 'Add to cart' }).first().click();
-    await expect(page.getByRole('button', { name: 'Remove' })).toBeVisible();
-
-    await page.locator('.shopping_cart_link').click();
-    await expect(page.getByText('Sauce Labs Backpack')).toBeVisible();
-
-    await page.getByRole('button', { name: 'Checkout' }).click();
-    await expect(page).toHaveURL(/checkout-step-one.html/);
-    await page.getByPlaceholder('First Name').fill('Zuzana');
-    await page.getByPlaceholder('Last Name').fill('Michalcikova');
-    await page.getByPlaceholder('Zip/Postal Code').fill('81101');
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page).toHaveURL(/checkout-step-two.html/);
-});
-test('zoradenie produktov od najlacnejsieho', async ({ page }) => {
-
-    await page.getByPlaceholder('Username').fill('standard_user');
-    await page.getByPlaceholder('Password').fill('secret_sauce');
-    await page.getByRole('button', { name: 'Login' }).click();
-    await page.getByRole('combobox').selectOption('Price (low to high)');
-    await expect(page.locator('.inventory_item_name').first()).toHaveText('Sauce Labs Onesie');
+        await page.getByRole('combobox').selectOption('Price (low to high)');
+        await expect(page.locator('.inventory_item_name').first()).toHaveText('Sauce Labs Onesie');
+    });
 });
